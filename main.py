@@ -1,20 +1,21 @@
 from colorama import Fore, Style
 from store import Store
-from products import Product
+from products import Product, LimitedProduct, NonStockedProduct
+
 
 def main():
     """
     Initializes the store with a default product list and starts the interactive store menu.
     The menu allows users to view products, check store quantities, make orders, and quit the application.
-
     :return: None
     """
     product_list = [
         Product("MacBook Air M2", price=1450, quantity=100),
         Product("Bose QuietComfort Earbuds", price=250, quantity=500),
-        Product("Google Pixel 7", price=500, quantity=250)
+        Product("Google Pixel 7", price=500, quantity=250),
+        NonStockedProduct("Windows License", price=125),
+        LimitedProduct("Shipping", price=10, quantity=250, maximum=1)
     ]
-
     best_buy = Store(product_list)
     start(best_buy)
 
@@ -44,7 +45,10 @@ def start(best_buy):
         if user_choice == "1":
             products = best_buy.get_all_products()
             for index, product in enumerate(products, start=1):
-                print(f"{index}. {product.name} - Price: {product.price}, Quantity: {product.quantity}")
+                if isinstance(product, NonStockedProduct):
+                    print(f"{index}. {product.name} - Price: {product.price:.2f}€")
+                else:
+                    print(f"{index}. {product.name} - Price: {product.price:.2f}€ - Quantity: {product.quantity}")
 
         elif user_choice == "2":
             print(f"\nTotal quantity in store: {best_buy.get_total_quantity()}")
@@ -53,7 +57,12 @@ def start(best_buy):
             while True:
                 print("\nAvailable Products:")
                 for index, product in enumerate(best_buy.get_all_products(), start=1):
-                    print(f"{index}. {product.name} - Price: {product.price}, Quantity: {product.quantity}")
+                    if isinstance(product, NonStockedProduct):
+                        print(f"{index}. {product.name} - Price: {product.price:.2f}€")
+                    elif isinstance(product, LimitedProduct):
+                        print(f"{index}. {product.name} - Price: {product.price:.2f}€ - Maximum: {product.maximum} per order")
+                    else:
+                        print(f"{index}. {product.name} - Price: {product.price:.2f}€ - Quantity: {product.quantity}")
 
                 product_choice = input("\nWhen you want to finish order, enter empty text.\nWhich product # do you want? ")
 
@@ -76,11 +85,14 @@ def start(best_buy):
                     if quantity <= 0:
                         print(Fore.RED + "\nQuantity must be a positive integer." + Style.RESET_ALL)
                         continue
+                    if isinstance(product, LimitedProduct) and quantity > product.maximum:
+                        print(Fore.RED + f"\nYou can only purchase a maximum of {product.maximum} units of {product.name}." + Style.RESET_ALL)
+                        continue
                 except ValueError:
                     print(Fore.RED + "\nPlease enter a valid quantity." + Style.RESET_ALL)
                     continue
 
-                if quantity > product.quantity:
+                if not isinstance(product, NonStockedProduct) and quantity > product.quantity:
                     print(Fore.RED + "\nNot enough stock available!" + Style.RESET_ALL)
                     print(Fore.RED + f"Currently, there are {product.quantity} units available for {product.name}." + Style.RESET_ALL)
                     continue

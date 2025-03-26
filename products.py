@@ -1,3 +1,5 @@
+from colorama import Fore, Style
+
 class Product:
     """
     Represents a product in an inventory system.
@@ -123,3 +125,100 @@ class Product:
             self.deactivate()
 
         return total_price
+
+
+class NonStockedProduct(Product):
+    """
+    Represents a product that is not stocked in the store, such as digital products or licenses.
+    This class extends the Product class, setting the quantity to 0 and marking the product as not stocked.
+    The quantity is fixed at 0 and cannot be changed.
+    Attributes:
+        is_stocked (bool): Indicates that the product is not stocked in the store (always False).
+    """
+
+    def __init__(self, name: str, price: float):
+        """
+        Initializes a non-stocked product with the provided name and price.
+        The quantity is always set to 0, as the product is not available in stock.
+        :param name: The name of the product.
+        :type name: str
+        :param price: The price of the product.
+        :type price: float
+        """
+        super().__init__(name, price, quantity=0)
+        self.is_stocked = False
+
+    def show(self) -> str:
+        """
+        Returns a string representation of the non-stocked product, including its name and price.
+        This method overrides the `show()` method from the Product class to indicate that the product is not stocked.
+        :return: A formatted string with the product's name and price.
+        :rtype: str
+        """
+        return f"{self.name} - Price: {self.price:.2f}€"
+
+    def buy(self, quantity: int) -> float:
+        """
+        Buys a non-stocked product (like a digital license). Since the product is not stocked,
+        the quantity does not matter. Any valid positive quantity is allowed.
+
+        :param quantity: The quantity to be purchased (e.g., 1 for a digital license).
+        :type quantity: int
+        :return: The total price of the purchase.
+        :rtype: float
+        :raises ValueError: If the quantity is invalid (not a positive integer).
+        """
+        if quantity <= 0:
+            raise ValueError(Fore.RED + "Invalid quantity. It must be a positive integer." + Style.RESET_ALL)
+        return quantity * self.price
+
+
+
+class LimitedProduct(Product):
+    """
+    Represents a product that has a limited quantity that can be purchased per order.
+    This class extends the Product class and enforces a limit on how many units of the product can be purchased in a single order.
+    Attributes:
+        maximum (int): The maximum quantity that can be purchased in a single order.
+        """
+
+    def __init__(self, name: str, price: float, quantity: int, maximum: int):
+        """
+        Initializes a limited product with the provided name, price, quantity, and maximum purchase limit.
+        The `quantity` is the available stock in the store, and `maximum` is the maximum allowed quantity that can be purchased per order.
+        :param name: The name of the product.
+        :type name: str
+        :param price: The price of the product.
+        :type price: float
+        :param quantity: The quantity of the product in stock.
+        :type quantity: int
+        :param maximum: The maximum quantity that can be purchased per order.
+        :type maximum: int
+        :raises ValueError: If the quantity exceeds the maximum allowed per order.
+        """
+        super().__init__(name, price,  quantity)
+        self.maximum = maximum
+
+    def show(self) -> str:
+        """
+        Returns a string representation of the limited product, including its name, price, available quantity, and maximum purchase per order.
+        This method overrides the `show()` method from the Product class to indicate the maximum allowed purchase quantity.
+        :return: A formatted string with the product's name, price, available quantity, and maximum purchase limit.
+        :rtype: str
+        """
+        return f"{self.name} - Price: {self.price:.2f}€ - Available: {self.quantity} - Max purchase per order: {self.maximum}"
+
+    def buy(self, quantity) -> float:
+        """
+        Buys a given quantity of the product if it is available.
+        Calculates the total purchase price and updates the quantity.
+        If the quantity reaches 0 after the purchase, the product will be deactivated.
+        :param quantity: The quantity to be purchased.
+        :type quantity: int
+        :return: The total price of the purchase.
+        :rtype: float
+        :raises ValueError: If the quantity is invalid or not enough stock is available.
+        """
+        if quantity <= 0:
+            raise ValueError(Fore.RED + "Invalid quantity. It must be a positive integer." + Style.RESET_ALL)
+        return quantity * self.price
