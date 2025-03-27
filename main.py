@@ -1,6 +1,6 @@
 from colorama import Fore, Style
 from store import Store
-from products import Product, LimitedProduct, NonStockedProduct
+from products import Product, LimitedProduct, NonStockedProduct, SecondHalfPrice, ThirdOneFree, PercentDiscount
 
 
 def main():
@@ -9,13 +9,23 @@ def main():
     The menu allows users to view products, check store quantities, make orders, and quit the application.
     :return: None
     """
-    product_list = [
-        Product("MacBook Air M2", price=1450, quantity=100),
-        Product("Bose QuietComfort Earbuds", price=250, quantity=500),
-        Product("Google Pixel 7", price=500, quantity=250),
-        NonStockedProduct("Windows License", price=125),
-        LimitedProduct("Shipping", price=10, quantity=250, maximum=1)
-    ]
+    # setup initial stock of inventory
+    product_list = [Product("MacBook Air M2", price=1450, quantity=100),
+                    Product("Bose QuietComfort Earbuds", price=250, quantity=500),
+                    Product("Google Pixel 7", price=500, quantity=250),
+                    NonStockedProduct("Windows License", price=125),
+                    LimitedProduct("Shipping", price=10, quantity=250, maximum=1)
+                    ]
+
+    # Create promotion catalog
+    second_half_price = SecondHalfPrice("Second Half price!")
+    third_one_free = ThirdOneFree("Third One Free!")
+    thirty_percent = PercentDiscount("30% off!", percent=30)
+
+    # Add promotions to products
+    product_list[0].set_promotion(second_half_price)
+    product_list[1].set_promotion(third_one_free)
+    product_list[3].set_promotion(thirty_percent)
     best_buy = Store(product_list)
     start(best_buy)
 
@@ -31,7 +41,6 @@ def start(best_buy):
     :type best_buy: Store
     :return: None
     """
-    shopping_list = []
     while True:
         print("\n           Store Menu          ")
         print("          ------------         ")
@@ -45,24 +54,36 @@ def start(best_buy):
         if user_choice == "1":
             products = best_buy.get_all_products()
             for index, product in enumerate(products, start=1):
+                promotion_info = f" - Promotion: {product.get_promotion().name}" if product.get_promotion() else ""
+
                 if isinstance(product, NonStockedProduct):
-                    print(f"{index}. {product.name} - Price: {product.price:.2f}€")
+                    print(f"{index}. {product.name} - Price: {product.price:.2f}€" + Fore.YELLOW + f"{promotion_info}" + Style.RESET_ALL)
+                elif isinstance(product, LimitedProduct):
+                    print(
+                        f"{index}. {product.name} - Price: {product.price:.2f}€ - Quantity: {product.quantity} - Max: {product.maximum}" + Fore.YELLOW + f"{promotion_info}" + Style.RESET_ALL)
                 else:
-                    print(f"{index}. {product.name} - Price: {product.price:.2f}€ - Quantity: {product.quantity}")
+                    print(
+                        f"{index}. {product.name} - Price: {product.price:.2f}€ - Quantity: {product.quantity}" + Fore.YELLOW + f"{promotion_info}" + Style.RESET_ALL)
+
 
         elif user_choice == "2":
             print(f"\nTotal quantity in store: {best_buy.get_total_quantity()}")
 
         elif user_choice == "3":
+            shopping_list = []
             while True:
                 print("\nAvailable Products:")
                 for index, product in enumerate(best_buy.get_all_products(), start=1):
+                    promotion_info = f" - Promotion: {product.get_promotion().name}" if product.get_promotion() else ""
+
                     if isinstance(product, NonStockedProduct):
-                        print(f"{index}. {product.name} - Price: {product.price:.2f}€")
+                        print(f"{index}. {product.name} - Price: {product.price:.2f}€" + Fore.YELLOW + f"{promotion_info}" + Style.RESET_ALL)
                     elif isinstance(product, LimitedProduct):
-                        print(f"{index}. {product.name} - Price: {product.price:.2f}€ - Maximum: {product.maximum} per order")
+                        print(
+                            f"{index}. {product.name} - Price: {product.price:.2f}€ - Maximum: {product.maximum} per order" + Fore.YELLOW + f"{promotion_info}" + Style.RESET_ALL)
                     else:
-                        print(f"{index}. {product.name} - Price: {product.price:.2f}€ - Quantity: {product.quantity}")
+                        print(
+                            f"{index}. {product.name} - Price: {product.price:.2f}€ - Quantity: {product.quantity}" + Fore.YELLOW + f"{promotion_info}" + Style.RESET_ALL)
 
                 product_choice = input("\nWhen you want to finish order, enter empty text.\nWhich product # do you want? ")
 
