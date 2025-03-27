@@ -25,11 +25,11 @@ def test_create_invalid_product():
 
     # Empty name
     with pytest.raises(ValueError):
-        product = Product(name="", price=1450.0, quantity=100)
+        Product(name="", price=1450.0, quantity=100)
 
     # Negative price
     with pytest.raises(ValueError):
-        product = Product(name="MacBook Air M2", price=-1450.0, quantity=100)
+        Product(name="MacBook Air M2", price=-1450.0, quantity=100)
 
 def test_product_status():
     """
